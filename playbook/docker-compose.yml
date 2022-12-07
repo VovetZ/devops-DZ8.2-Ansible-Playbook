@@ -1,0 +1,12 @@
+version: '3'
+services:
+  pc-01:
+    image: pycontribs/centos:7
+    container_name: clickhouse-01
+    restart: unless-stopped
+    entrypoint: "sleep infinity"
+  pc-02:
+    image: pycontribs/centos:7
+    container_name: vector-01
+    restart: unless-stopped
+    entrypoint: "sleep infinity"
