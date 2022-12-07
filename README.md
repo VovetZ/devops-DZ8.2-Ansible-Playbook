@@ -10,164 +10,147 @@
 ## Основная часть
 
 1. Приготовьте свой собственный inventory файл `prod.yml`.
- - [prod.yml](./playbook/inventory/prod.yml)
+[Link](./playbook/inventory/prod.yml)
 2. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает [vector](https://vector.dev).
- - [site.yml](./playbook/site.yml)
+[Link](./playbook/site.yml)
 3. При создании tasks рекомендую использовать модули: `get_url`, `template`, `unarchive`, `file`.
- - `vector` ставил по аналогии с `clickhouse` из `rpm` пакета. 
+Vector ставил по аналогии с Clickhouse из RPM пакета. 
 4. Tasks должны: скачать нужной версии дистрибутив, выполнить распаковку в выбранную директорию, установить vector.
  - в [vars.yml](./playbook/group_vars/vector/vars.yml) добавлена переменная `vector_version` 
 5. Запустите `ansible-lint site.yml` и исправьте ошибки, если они есть.
- - ошибки были - исправлено:
-```shell
-vagrant@vagrant:~/playbook$ ansible-lint site.yml
-[301] Commands should not change things if nothing needs doing
-site.yml:30
-Task/Handler: Clickhouse-Server Start
-
-[201] Trailing whitespace
-site.yml:53
-      ansible.builtin.yum:
-
-vagrant@vagrant:~/playbook$ ansible-lint site.yml
-vagrant@vagrant:~/playbook$
+``bash
+root@vkvm:/home/vk/DZ8.2/playbook# ansible-lint site.yml 
+WARNING  Overriding detected file kind 'yaml' with 'playbook' for given positional argument: site.yml
 ```
 6. Попробуйте запустить playbook на этом окружении с флагом `--check`.
-```shell
-vagrant@vagrant:~/playbook$ ansible-playbook site.yml -i inventory/prod.yml --check
 
-PLAY [Install Clickhouse] *****************************************************************************************************************************
+```bash
+root@vkvm:/home/vk/DZ8.2/playbook# ansible-playbook --check -i inventory/prod.yml site.yml 
 
-TASK [Gathering Facts] ********************************************************************************************************************************
+PLAY [Install Clickhouse] **********************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************
 ok: [clickhouse-01]
 
-TASK [Get clickhouse distrib - 1] *********************************************************************************************************************
-ok: [clickhouse-01] => (item=clickhouse-client)
-ok: [clickhouse-01] => (item=clickhouse-server)
-failed: [clickhouse-01] (item=clickhouse-common-static) => {"ansible_loop_var": "item", "changed": false, "dest": "./clickhouse-common-static-22.3.3.44.rpm", "elapsed": 0, "gid": 0, "group": "root", "item": "clickhouse-common-static", "mode": "0644", "msg": "Request failed", "owner": "root", "response": "HTTP Error 404: Not Found", "size": 246310036, "state": "file", "status_code": 404, "uid": 0, "url": "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-22.3.3.44.noarch.rpm"}
+TASK [Get clickhouse distrib - 1] **************************************************************************
+changed: [clickhouse-01] => (item=clickhouse-client)
+changed: [clickhouse-01] => (item=clickhouse-server)
+failed: [clickhouse-01] (item=clickhouse-common-static) => {"ansible_loop_var": "item", "changed": false, "dest": "./clickhouse-common-static-22.3.3.44.rpm", "elapsed": 0, "item": "clickhouse-common-static", "msg": "Request failed", "response": "HTTP Error 404: Not Found", "status_code": 404, "url": "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-22.3.3.44.noarch.rpm"}
 
-TASK [Get clickhouse distrib - 2] *********************************************************************************************************************
-ok: [clickhouse-01]
-
-TASK [Install clickhouse packages] ********************************************************************************************************************
-ok: [clickhouse-01]
-
-TASK [Clickhouse-Server Start] ************************************************************************************************************************
-skipping: [clickhouse-01]
-
-TASK [Create database] ********************************************************************************************************************************
-skipping: [clickhouse-01]
-
-PLAY [Install vector] *********************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************
-ok: [vector-01]
-
-TASK [Get vector distrib] *****************************************************************************************************************************
-ok: [vector-01]
-
-TASK [Install vector packages] ************************************************************************************************************************
-ok: [vector-01]
-
-PLAY RECAP ********************************************************************************************************************************************
-clickhouse-01              : ok=3    changed=0    unreachable=0    failed=0    skipped=2    rescued=1    ignored=0
-vector-01                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-
-```
-7. Запустите playbook на `prod.yml` окружении с флагом `--diff`. Убедитесь, что изменения на системе произведены.
-```shell
-vagrant@vagrant:~/playbook$ ansible-playbook site.yml -i inventory/prod.yml --diff
-
-PLAY [Install Clickhouse] *****************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************
-ok: [clickhouse-01]
-
-TASK [Get clickhouse distrib - 1] *********************************************************************************************************************
-ok: [clickhouse-01] => (item=clickhouse-client)
-ok: [clickhouse-01] => (item=clickhouse-server)
-failed: [clickhouse-01] (item=clickhouse-common-static) => {"ansible_loop_var": "item", "changed": false, "dest": "./clickhouse-common-static-22.3.3.44.rpm", "elapsed": 0, "gid": 0, "group": "root", "item": "clickhouse-common-static", "mode": "0644", "msg": "Request failed", "owner": "root", "response": "HTTP Error 404: Not Found", "size": 246310036, "state": "file", "status_code": 404, "uid": 0, "url": "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-22.3.3.44.noarch.rpm"}
-
-TASK [Get clickhouse distrib - 2] *********************************************************************************************************************
-ok: [clickhouse-01]
-
-TASK [Install clickhouse packages] ********************************************************************************************************************
-ok: [clickhouse-01]
-
-TASK [Clickhouse-Server Start] ************************************************************************************************************************
+TASK [Get clickhouse distrib - 2] **************************************************************************
 changed: [clickhouse-01]
 
-TASK [Create database] ********************************************************************************************************************************
+TASK [Install clickhouse packages] *************************************************************************
+fatal: [clickhouse-01]: FAILED! => {"changed": false, "msg": "No RPM file matching 'clickhouse-common-static-22.3.3.44.rpm' found on system", "rc": 127, "results": ["No RPM file matching 'clickhouse-common-static-22.3.3.44.rpm' found on system"]}
+
+PLAY RECAP *************************************************************************************************
+clickhouse-01              : ok=2    changed=1    unreachable=0    failed=1    skipped=0    rescued=1    ignored=0   
+```
+
+7. Запустите playbook на `prod.yml` окружении с флагом `--diff`. Убедитесь, что изменения на системе произведены.
+
+```bash
+root@vkvm:/home/vk/DZ8.2/playbook# ansible-playbook --diff -i inventory/prod.yml site.yml 
+
+PLAY [Install Clickhouse] **********************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************
 ok: [clickhouse-01]
 
-PLAY [Install vector] *********************************************************************************************************************************
+TASK [Get clickhouse distrib - 1] **************************************************************************
+changed: [clickhouse-01] => (item=clickhouse-client)
+changed: [clickhouse-01] => (item=clickhouse-server)
+failed: [clickhouse-01] (item=clickhouse-common-static) => {"ansible_loop_var": "item", "changed": false, "dest": "./clickhouse-common-static-22.3.3.44.rpm", "elapsed": 0, "item": "clickhouse-common-static", "msg": "Request failed", "response": "HTTP Error 404: Not Found", "status_code": 404, "url": "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-22.3.3.44.noarch.rpm"}
 
-TASK [Gathering Facts] ********************************************************************************************************************************
+TASK [Get clickhouse distrib - 2] **************************************************************************
+changed: [clickhouse-01]
+
+TASK [Install clickhouse packages] *************************************************************************
+changed: [clickhouse-01]
+
+TASK [Clickhouse-Server Start] *****************************************************************************
+[WARNING]: Consider using 'become', 'become_method', and 'become_user' rather than running sudo
+changed: [clickhouse-01]
+
+TASK [Create database] *************************************************************************************
+changed: [clickhouse-01]
+
+RUNNING HANDLER [Start clickhouse service] *****************************************************************
+changed: [clickhouse-01]
+
+PLAY [Install vector] **************************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************
 ok: [vector-01]
 
-TASK [Get vector distrib] *****************************************************************************************************************************
-ok: [vector-01]
+TASK [Get vector distrib] **********************************************************************************
+changed: [vector-01]
 
-TASK [Install vector packages] ************************************************************************************************************************
-ok: [vector-01]
+TASK [Install vector packages] *****************************************************************************
+changed: [vector-01]
 
-PLAY RECAP ********************************************************************************************************************************************
-clickhouse-01              : ok=5    changed=1    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0
-vector-01                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+RUNNING HANDLER [Start vector service] *********************************************************************
+fatal: [vector-01]: FAILED! => {"changed": false, "msg": "Could not find the requested service vector: host"}
 
+NO MORE HOSTS LEFT *****************************************************************************************
+
+PLAY RECAP *************************************************************************************************
+clickhouse-01              : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0   
+vector-01                  : ok=3    changed=2    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
 ```
 8. Повторно запустите playbook с флагом `--diff` и убедитесь, что playbook идемпотентен.
-- идемпотентен:
-```shell
-vagrant@vagrant:~/playbook$ ansible-playbook site.yml -i inventory/prod.yml --diff
 
-PLAY [Install Clickhouse] *****************************************************************************************************************************
+```bash
+root@vkvm:/home/vk/DZ8.2/playbook# ansible-playbook --diff -i inventory/prod.yml site.yml 
 
-TASK [Gathering Facts] ********************************************************************************************************************************
+PLAY [Install Clickhouse] **********************************************************************************
+
+TASK [Gathering Facts] *************************************************************************************
 ok: [clickhouse-01]
 
-TASK [Get clickhouse distrib - 1] *********************************************************************************************************************
+TASK [Get clickhouse distrib - 1] **************************************************************************
 ok: [clickhouse-01] => (item=clickhouse-client)
 ok: [clickhouse-01] => (item=clickhouse-server)
 failed: [clickhouse-01] (item=clickhouse-common-static) => {"ansible_loop_var": "item", "changed": false, "dest": "./clickhouse-common-static-22.3.3.44.rpm", "elapsed": 0, "gid": 0, "group": "root", "item": "clickhouse-common-static", "mode": "0644", "msg": "Request failed", "owner": "root", "response": "HTTP Error 404: Not Found", "size": 246310036, "state": "file", "status_code": 404, "uid": 0, "url": "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-22.3.3.44.noarch.rpm"}
 
-TASK [Get clickhouse distrib - 2] *********************************************************************************************************************
+TASK [Get clickhouse distrib - 2] **************************************************************************
 ok: [clickhouse-01]
 
-TASK [Install clickhouse packages] ********************************************************************************************************************
+TASK [Install clickhouse packages] *************************************************************************
 ok: [clickhouse-01]
 
-TASK [Clickhouse-Server Start] ************************************************************************************************************************
+TASK [Clickhouse-Server Start] *****************************************************************************
+[WARNING]: Consider using 'become', 'become_method', and 'become_user' rather than running sudo
 changed: [clickhouse-01]
 
-TASK [Create database] ********************************************************************************************************************************
+TASK [Create database] *************************************************************************************
 ok: [clickhouse-01]
 
-PLAY [Install vector] *********************************************************************************************************************************
+PLAY [Install vector] **************************************************************************************
 
-TASK [Gathering Facts] ********************************************************************************************************************************
+TASK [Gathering Facts] *************************************************************************************
 ok: [vector-01]
 
-TASK [Get vector distrib] *****************************************************************************************************************************
+TASK [Get vector distrib] **********************************************************************************
 ok: [vector-01]
 
-TASK [Install vector packages] ************************************************************************************************************************
+TASK [Install vector packages] *****************************************************************************
 ok: [vector-01]
 
-PLAY RECAP ********************************************************************************************************************************************
-clickhouse-01              : ok=5    changed=1    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0
-vector-01                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+PLAY RECAP *************************************************************************************************
+clickhouse-01              : ok=5    changed=1    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0   
+vector-01                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
 
 ```
+
 9. Подготовьте README.md файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
- - [README.md](./playbook/README.md)
+
+[Link](./Info.md)
+
 10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-02-playbook` на фиксирующий коммит, в ответ предоставьте ссылку на него.
- - [ссылка на playbook](./playbook)
 
 ---
 
 ### Как оформить ДЗ?
 
 Выполненное домашнее задание пришлите ссылкой на .md-файл в вашем репозитории.
-
----
