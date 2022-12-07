@@ -27,7 +27,7 @@ Vector ставил по аналогии с Clickhouse из RPM пакета.
 
 5. Запустите `ansible-lint site.yml` и исправьте ошибки, если они есть.
 
-``bash
+```bash
 root@vkvm:/home/vk/DZ8.2/playbook# ansible-lint site.yml 
 WARNING  Overriding detected file kind 'yaml' with 'playbook' for given positional argument: site.yml
 ```
