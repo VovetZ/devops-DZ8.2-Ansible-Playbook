@@ -10,13 +10,16 @@
 ## Основная часть
 
 1. Приготовьте свой собственный inventory файл `prod.yml`.
+
 [Link](./playbook/inventory/prod.yml)
 2. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает [vector](https://vector.dev).
+
 [Link](./playbook/site.yml)
 3. При создании tasks рекомендую использовать модули: `get_url`, `template`, `unarchive`, `file`.
+
 Vector ставил по аналогии с Clickhouse из RPM пакета. 
 4. Tasks должны: скачать нужной версии дистрибутив, выполнить распаковку в выбранную директорию, установить vector.
- - в [vars.yml](./playbook/group_vars/vector/vars.yml) добавлена переменная `vector_version` 
+в [vars.yml](./playbook/group_vars/vector/vars.yml) добавлена переменная `vector_version` 
 5. Запустите `ansible-lint site.yml` и исправьте ошибки, если они есть.
 ``bash
 root@vkvm:/home/vk/DZ8.2/playbook# ansible-lint site.yml 
